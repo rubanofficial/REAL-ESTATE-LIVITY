@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import SignIn from './pages/SignIn';
 import Header from './components/Header'; // Import the Header
+import Footer from './components/Footer';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/sign-in" element={<SignIn />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }
