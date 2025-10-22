@@ -2,65 +2,28 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-
-// Framer Motion variants for a staggered animation effect
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.3, // Each child will animate 0.3s after the previous one
-        },
-    },
-};
-
-const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            duration: 0.5,
-        },
-    },
-};
+import ImageSlider from '../components/ImageSlider';
 
 export default function Home() {
     return (
-        // Main container for the hero section
-        <motion.div
-            className="flex flex-col gap-6 p-28 px-3 max-w-6xl mx-auto"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
-            <motion.h1
-                className="text-slate-700 font-bold text-3xl lg:text-6xl"
-                variants={itemVariants}
-            >
-                Find your next <span className="text-slate-500">perfect</span>
-                <br />
-                place with ease
-            </motion.h1>
+        <div>
+            {/* Top section with the image slider */}
+            <ImageSlider />
 
-            <motion.div
-                className="text-gray-400 text-xs sm:text-sm"
-                variants={itemVariants}
-            >
-                Ruban Estate is the best place to find your next perfect home.
-                <br />
-                We have a wide range of properties for you to choose from.
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-                <Link
-                    to={'/search'} // We'll create this search page later
-                    className="text-xs sm:text-sm text-blue-800 font-bold hover:underline"
-                >
+            {/* Section below the slider for call-to-action and info */}
+            <div className="max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10">
+                <h1 className="text-slate-700 font-bold text-3xl lg:text-5xl">
+                    Find your next <span className="text-slate-500">perfect</span> place with ease
+                </h1>
+                <div className="text-gray-500 text-sm">
+                    Ruban Estate is the best place to find your next perfect home. We have a wide range of properties for you to choose from.
+                </div>
+                <Link to={'/search'} className="text-sm text-blue-800 font-bold hover:underline">
                     Let's get started...
                 </Link>
-            </motion.div>
-        </motion.div>
+            </div>
+
+            {/* We will add sections for "Recent Offers", "Places for Rent", etc. here later */}
+        </div>
     );
 }
