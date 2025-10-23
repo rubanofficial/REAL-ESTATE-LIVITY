@@ -1,59 +1,32 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import livityLogo from '../assets/LOGO.png'; // 1. Import the logo image
 
 export default function SignUp() {
-    // 1. Create state to hold the form's data
     const [formData, setFormData] = useState({});
-
-    // 2. Create state for loading and error feedback
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // 3. This is the "Controlled Component" handler.
-    // It updates our 'formData' state every time a user types in an input
     const handleChange = (e) => {
-        // [e.target.id] is a dynamic key. It uses the 'id' of the input (e.g., 'username', 'email')
-        // to update the correct field in our state object.
         setFormData({
-            ...formData, // Keep the old values
-            [e.target.id]: e.target.value, // Add the new/updated value
+            ...formData,
+            [e.target.id]: e.target.value,
         });
     };
 
-    // 4. This function runs when the user submits the form
     const handleSubmit = (e) => {
-        // This STOPS the browser from refreshing the page, which is the default HTML form behavior.
         e.preventDefault();
-
-        // For now, let's just log our state to the console to see if it works
         console.log('Form data being submitted:', formData);
-
-        // --- THIS IS WHERE OUR BACKEND LOGIC WILL GO (in the next step) ---
-        // try {
-        //   setLoading(true);
-        //   const res = await fetch('/api/auth/signup', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(formData),
-        //   });
-        //   const data = await res.json();
-        //   if (data.success === false) {
-        //     setError(data.message);
-        //     setLoading(false);
-        //     return;
-        //   }
-        //   setLoading(false);
-        //   setError(null);
-        //   // We will navigate the user to the Sign In page
-        //   // navigate('/sign-in');
-        // } catch (error) {
-        //   setLoading(false);
-        //   setError(error.message);
-        // }
+        // (Your backend submission logic will go here)
     };
 
     return (
         <div className="p-3 max-w-lg mx-auto">
+            {/* 2. Display the logo above the heading */}
+            <div className="flex justify-center mb-6"> {/* Centering div for the logo */}
+                <img src={livityLogo} alt="Livity Logo" className="h-12 sm:h-16 object-contain" />
+            </div>
+
             <h1 className="text-3xl text-center font-semibold my-7">Sign Up</h1>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <input
@@ -90,8 +63,8 @@ export default function SignUp() {
                     Sign in
                 </Link>
             </div>
-            {/* 5. Show the error message if 'error' state is not null */}
             {error && <p className="text-red-500 mt-5">{error}</p>}
         </div>
     );
 }
+
