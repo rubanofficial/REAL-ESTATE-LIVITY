@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+// 1. Import the logo
+import livityLogo from '../assets/LOGO.png';
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,11 +11,10 @@ export default function Header() {
     return (
         <header className="bg-white shadow-md sticky top-0 z-50">
             <div className="flex justify-between items-center max-w-6xl mx-auto p-3 h-16">
+
+                {/* 2. Replace the H1 text logo with the IMG logo */}
                 <Link to="/">
-                    <h1 className="font-bold text-sm sm:text-xl flex flex-wrap">
-                        <span className="text-slate-500">Ruban</span>
-                        <span className="text-slate-700">Estate</span>
-                    </h1>
+                    <img src={livityLogo} alt="Livity Logo" className="h-10 object-contain" />
                 </Link>
 
                 {/* --- DESKTOP NAVIGATION --- */}
