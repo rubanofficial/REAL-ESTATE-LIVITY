@@ -5,6 +5,7 @@ import About from './pages/About';
 import SignUp from './pages/SignUp';
 import Header from './components/Header'; // Import the Header
 import Footer from './components/Footer';
+import SignIn from './pages/SignIn';
 
 export default function App() {
   return (
