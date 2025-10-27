@@ -1,5 +1,23 @@
 {
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Backend for Livity Real Estate",
+  "main": "api/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon api/index.js",
+    "start": "node api/index.js"
+  },
+  "keywords": [],
+  "author": "Ruban",
+  "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^3.0.2"
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
