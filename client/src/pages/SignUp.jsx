@@ -44,7 +44,7 @@ export default function SignUp() {
 
             setLoading(false);
             // If everything was successful, redirect the user to the home page.
-            navigate('/home');
+            navigate('/');
         } catch (error) {
             setLoading(false);
             // This 'catch' block will handle network errors (e.g., if the server is down).
