@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import livityLogo from '../assets/LOGO.png';
+import livityLogo from '../assets/LOGO.png'; // Make sure this path is correct
 import { motion } from 'framer-motion';
 import { FaGoogle } from 'react-icons/fa';
 
 export default function SignIn() {
+    // State to hold form data
     const [formData, setFormData] = useState({});
+    // State for error messages
     const [error, setError] = useState(null);
+    // State for loading status
     const [loading, setLoading] = useState(false);
+    // Hook to redirect user
     const navigate = useNavigate();
 
+    // Updates state when user types
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -17,53 +22,45 @@ export default function SignIn() {
         });
     };
 
+    // Runs when form is submitted
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            setError(null);
+        e.preventDefault(); // Stop page from reloading
+        setLoading(true);
+        setError(null);
 
-            // --- THIS IS OUR FUTURE API CALL ---
-            // const res = await fetch('/api/auth/signin', {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify(formData),
-            // });
-            // const data = await res.json();
+        // --- SIMULATED API CALL ---
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Simulating signin with:', formData);
+        // --- End of simulation ---
 
-            // --- For now, we simulate a successful API call ---
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const data = { success: true, user: { username: 'ruban' } }; // Simulate success
-            // --- End of simulation ---
-
-            if (data.success === false) {
-                throw new Error('Simulation Error: Invalid credentials'); // For demo
-            }
-            setLoading(false);
-            navigate('/'); // Redirect to home page on success
-        } catch (error) {
-            setLoading(false);
-            setError('Invalid email or password. Please try again.');
-        }
+        setLoading(false);
+        navigate('/'); // Redirect to home page on success
     };
 
+    // Placeholder for Google login
     const handleGoogleClick = () => {
-        console.log('Google login clicked! We will wire this up later.');
+        console.log('Google login clicked!');
     };
 
     return (
+        // Full-page container
         <div className="min-h-screen bg-slate-100 py-10 px-4">
+            {/* Main animated card */}
             <motion.div
                 className="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
+
+                {/* --- Image Side --- */}
                 <div
                     className="hidden md:block md:w-1/2 bg-cover bg-center"
-                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529539795054-3c162a44b490?q=80&w=2070&auto=format&fit=crop')" }}
+                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529539795054-3c162a44b490?q=80&w=2070&auto=format=fit=crop')" }}
                 >
                 </div>
+
+                {/* --- Form Side --- */}
                 <div className="w-full md:w-1/2 p-8 md:p-12">
                     <div className="flex justify-center mb-4">
                         <img src={livityLogo} alt="Livity Logo" className="h-12 object-contain" />
@@ -73,7 +70,6 @@ export default function SignIn() {
                     </h1>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        {/* --- ONLY EMAIL AND PASSWORD ARE NEEDED --- */}
                         <input
                             type="email"
                             placeholder="Email"
@@ -96,11 +92,13 @@ export default function SignIn() {
                         >
                             {loading ? 'Signing In...' : 'Sign In'}
                         </button>
+
                         <div className="flex items-center gap-2 my-2">
                             <div className="flex-grow border-t border-slate-300"></div>
                             <span className="text-slate-400 text-sm">OR</span>
                             <div className="flex-grow border-t border-slate-300"></div>
                         </div>
+
                         <button
                             type="button"
                             onClick={handleGoogleClick}
@@ -112,7 +110,6 @@ export default function SignIn() {
                     </form>
 
                     <div className="flex gap-2 mt-5 justify-center">
-                        {/* --- LINK NOW GOES TO SIGN-UP --- */}
                         <p className="text-slate-600">Don't have an account?</p>
                         <Link to="/sign-up" className="text-blue-600 hover:underline">
                             Sign up
