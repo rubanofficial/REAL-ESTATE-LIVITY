@@ -22,7 +22,11 @@ mongoose
 const app = express();
 
 // --- 5. Middlewares ---
-app.use(cors()); // ✅ allows frontend (5173) to talk to backend (5000)
+app.use(cors({
+    origin: ["http://localhost:5173", "https://your-frontend-domain.onrender.com"],
+    credentials: true,
+}));
+// ✅ allows frontend (5173) to talk to backend (5000)
 app.use(express.json()); // ✅ parses incoming JSON requests
 app.use(cookieParser());
 // --- 6. Define API Routes ---
