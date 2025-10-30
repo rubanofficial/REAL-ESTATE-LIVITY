@@ -31,11 +31,12 @@ export default function SignIn() {
 
             // --- 1. THIS IS THE REAL API CALL ---
             // We are sending the formData to our backend
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signin`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch("https://rems-backend-gfbp.onrender.com/api/auth/signin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
+
             // Get the response from the server (user data or error message)
             const data = await res.json();
 

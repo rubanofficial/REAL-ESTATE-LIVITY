@@ -26,11 +26,12 @@ export default function SignUp() {
             console.log("🔗 Sending signup request to:", import.meta.env.VITE_BACKEND_URL);
 
             // --- Send form data to backend ---
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch("https://rems-backend-gfbp.onrender.com/api/auth/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
+
 
             const data = await res.json();
             console.log("📦 Response data:", data);
