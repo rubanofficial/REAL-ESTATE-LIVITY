@@ -1,5 +1,5 @@
 import User from '../models/user.model.js';
-import bcryptjs from 'bcryptjs';
+import bcryptjs from 'bcrypt';
 import jwt from 'jsonwebtoken'; // <-- Tool for the "Access Card"
 
 // This is your existing 'signup' function
