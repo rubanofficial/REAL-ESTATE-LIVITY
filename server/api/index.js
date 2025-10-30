@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors'; // ✅ Important if frontend and backend run on different ports
 import authRouter from './routes/auth.route.js';
-
+import cookieParser from 'cookie-parser';
 // --- 2. Initial Setup ---
 dotenv.config();
 
@@ -24,7 +24,7 @@ const app = express();
 // --- 5. Middlewares ---
 app.use(cors()); // ✅ allows frontend (5173) to talk to backend (5000)
 app.use(express.json()); // ✅ parses incoming JSON requests
-
+app.use(cookieParser());
 // --- 6. Define API Routes ---
 app.use('/api/auth', authRouter);
 
