@@ -24,7 +24,7 @@ export default function SignUp() {
 
             // --- 1. REAL FETCH CALL IS NOW ACTIVE ---
             // This sends our form data to the backend API we just built.
-            const res = await fetch('http://localhost:5000/api/auth/signup', {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
