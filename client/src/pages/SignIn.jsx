@@ -25,16 +25,40 @@ export default function SignIn() {
     // Runs when form is submitted
     const handleSubmit = async (e) => {
         e.preventDefault(); // Stop page from reloading
-        setLoading(true);
-        setError(null);
+        try {
+            setLoading(true);
+            setError(null);
 
-        // --- SIMULATED API CALL ---
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Simulating signin with:', formData);
-        // --- End of simulation ---
+            // --- 1. THIS IS THE REAL API CALL ---
+            // We are sending the formData to our backend
+            const res = await fetch('/api/auth/signin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            // Get the response from the server (user data or error message)
+            const data = await res.json();
 
-        setLoading(false);
-        navigate('/'); // Redirect to home page on success
+            // --- 2. REMOVED THE SIMULATION BLOCK ---
+
+            // 3. Check for errors sent from our backend
+            // Our backend error handler sends 'success: false'
+            if (data.success === false) {
+                setError(data.message);
+                setLoading(false);
+                return; // Stop the function
+            }
+
+            // 4. If successful:
+            setLoading(false);
+            console.log('Login Success! User data:', data); // Log the user data
+            navigate('/'); // Redirect to home page
+
+        } catch (error) {
+            // This catches network errors (e.g., server is down)
+            setLoading(false);
+            setError('An error occurred. Please try again.');
+        }
     };
 
     // Placeholder for Google login
@@ -52,11 +76,10 @@ export default function SignIn() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-
                 {/* --- Image Side --- */}
                 <div
                     className="hidden md:block md:w-1/2 bg-cover bg-center"
-                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529539795054-3c162a44b490?q=80&w=2070&auto=format=fit=crop')" }}
+                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529539795054-3c162a44b490?q=80&w=2070&auto=format&fit=crop')" }}
                 >
                 </div>
 
@@ -125,3 +148,4 @@ export default function SignIn() {
         </div>
     );
 }
+
