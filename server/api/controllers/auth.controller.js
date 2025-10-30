@@ -1,37 +1,46 @@
-// 1. Import the User model (the "recipe book" from your Canvas)
 import User from '../models/user.model.js';
-// 2. Import bcryptjs for password hashing
 import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken'; // <-- Tool for the "Access Card"
 
-// 3. This is the 'signup' function
-// We make it 'async' because database operations take time
+// This is your existing 'signup' function
 export const signup = async (req, res) => {
-    // 4. Get the data from the frontend form (req.body)
     const { username, email, password } = req.body;
-
     try {
-        // 5. Hash the password
-        // 'bcryptjs.hashSync' is a fast way to hash. 10 is the 'salt' - how strong the hash is.
         const hashedPassword = bcryptjs.hashSync(password, 10);
-
-        // 6. Create a new user object using the User model
-        const newUser = new User({
-            username,
-            email,
-            password: hashedPassword, // Store the HASHED password
-            // Note: The 'avatar' field will use the default value from your model
-        });
-
-        // 7. Save the new user to the database
-        // 'await' pauses the function until this database operation is complete
+        const newUser = new User({ username, email, password: hashedPassword });
         await newUser.save();
-
-        // 8. Send a success response back to the frontend
-        // '201' is the HTTP status code for "Created"
         res.status(201).json({ message: 'User created successfully!' });
     } catch (error) {
-        // 9. If anything goes wrong (e.g., duplicate email), send an error
         res.status(500).json({ message: error.message });
     }
 };
 
+
+// --- THIS IS THE NEW SIGNIN FUNCTION ---
+export const signin = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        // a. Check if user exists
+        const validUser = await User.findOne({ email });
+        if (!validUser) return res.status(404).json({ message: 'User not found' });
+
+        // b. Check if password is correct
+        const validPassword = bcryptjs.compareSync(password, validUser.password);
+        if (!validPassword) return res.status(401).json({ message: 'Invalid credentials' });
+
+        // c. If correct, create the "Access Card" (JWT)
+        const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+
+        // d. Hide the password before sending user data
+        const { password: pass, ...rest } = validUser._doc;
+
+        // e. Send the JWT in a secure cookie and the user data as JSON
+        res
+            .cookie('access_token', token, { httpOnly: true, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) }) // Expires in 24h
+            .status(200)
+            .json(rest);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
