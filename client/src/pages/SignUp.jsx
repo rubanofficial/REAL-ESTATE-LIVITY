@@ -22,32 +22,30 @@ export default function SignUp() {
             setLoading(true);
             setError(null);
 
-            // --- 1. REAL FETCH CALL IS NOW ACTIVE ---
-            // This sends our form data to the backend API we just built.
+            // 🧠 Debug: Log the backend URL before calling it
+            console.log("🔗 Sending signup request to:", import.meta.env.VITE_BACKEND_URL);
+
+            // --- Send form data to backend ---
             const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
-            // Get the response (e.g., success or error message) from the server.
+
             const data = await res.json();
+            console.log("📦 Response data:", data);
 
-            // 2. We've removed the simulation block.
-
-            // 3. Handle specific errors sent from our backend.
-            // If the backend sends a success: false, we show its message.
             if (data.success === false) {
                 setError(data.message);
                 setLoading(false);
-                return; // Stop the function here.
+                return;
             }
 
             setLoading(false);
-            // If everything was successful, redirect the user to the home page.
             navigate('/');
         } catch (error) {
+            console.error("🚨 Signup Error:", error);
             setLoading(false);
-            // This 'catch' block will handle network errors (e.g., if the server is down).
             setError('An unexpected error occurred. Please try again.');
         }
     };
