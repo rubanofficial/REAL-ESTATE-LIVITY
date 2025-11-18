@@ -6,6 +6,7 @@ import SignUp from './pages/SignUp';
 import Header from './components/Header'; // Import the Header
 import Footer from './components/Footer';
 import SignIn from './pages/SignIn';
+import AddProperty from './pages/AddProperty';
 import PropertyPage from './pages/PropertyPage';
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/listing/:id" element={<PropertyPage />} />
+        <Route path="/add-property" element={<AddProperty />} />
       </Routes>
       <Footer />
     </BrowserRouter>
