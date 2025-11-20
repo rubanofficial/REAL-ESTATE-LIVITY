@@ -27,13 +27,9 @@ export default function AddProperty() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
         if (name.startsWith("address.")) {
             const key = name.split(".")[1];
-            setForm((prev) => ({
-                ...prev,
-                address: { ...prev.address, [key]: value },
-            }));
+            setForm((prev) => ({ ...prev, address: { ...prev.address, [key]: value } }));
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));
         }
@@ -42,23 +38,20 @@ export default function AddProperty() {
     const handleFileSelect = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         if (!file.type.startsWith("image/")) {
             setError("Only image files allowed");
             return;
         }
-
         if (file.size > 5 * 1024 * 1024) {
             setError("Image must be ≤ 5MB");
             return;
         }
-
         setImageFile(file);
         setError("");
-
         const reader = new FileReader();
         reader.onload = (ev) => setPreview(ev.target.result);
         reader.readAsDataURL(file);
+        e.target.value = "";
     };
 
     const removeImage = () => {
@@ -67,17 +60,11 @@ export default function AddProperty() {
     };
 
     const changeBedrooms = (delta) => {
-        setForm((f) => ({
-            ...f,
-            bedrooms: Math.max(1, f.bedrooms + delta),
-        }));
+        setForm((f) => ({ ...f, bedrooms: Math.max(1, f.bedrooms + delta) }));
     };
 
     const changeBathrooms = (delta) => {
-        setForm((f) => ({
-            ...f,
-            bathrooms: Math.max(1, f.bathrooms + delta),
-        }));
+        setForm((f) => ({ ...f, bathrooms: Math.max(1, f.bathrooms + delta) }));
     };
 
     const validate = () => {
@@ -116,18 +103,19 @@ export default function AddProperty() {
                 xhr.withCredentials = true;
 
                 xhr.upload.onprogress = (ev) => {
-                    if (ev.lengthComputable) {
-                        setProgressPercent(Math.round((ev.loaded / ev.total) * 100));
-                    }
+                    if (ev.lengthComputable) setProgressPercent(Math.round((ev.loaded / ev.total) * 100));
                 };
 
                 xhr.onload = () => {
                     if (xhr.status === 200 || xhr.status === 201) {
                         const res = JSON.parse(xhr.responseText);
                         resolve(res);
-                        navigate("/");
+                        if (res?.property?._id) navigate(`/listing/${res.property._id}`);
+                        else navigate("/");
                     } else {
-                        reject(new Error("Upload failed"));
+                        let msg = "Upload failed";
+                        try { msg = JSON.parse(xhr.responseText)?.message || xhr.statusText; } catch { }
+                        reject(new Error(msg));
                     }
                 };
 
@@ -135,7 +123,7 @@ export default function AddProperty() {
                 xhr.send(fd);
             });
         } catch (err) {
-            setError(err.message);
+            setError(err.message || "Submit failed");
         } finally {
             setLoading(false);
             setProgressPercent(0);
@@ -143,11 +131,11 @@ export default function AddProperty() {
     };
 
     return (
-        <main className="max-w-3xl mx-auto p-6">
-            <h1 className="text-2xl font-semibold mb-6">Create Listing</h1>
+        <main className="max-w-3xl mx-auto p-4 sm:p-6">
+            <h1 className="text-2xl font-semibold mb-5">Create Listing</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* ---------- Title ---------- */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Title */}
                 <input
                     name="title"
                     value={form.title}
@@ -156,18 +144,17 @@ export default function AddProperty() {
                     className="w-full p-2 border rounded"
                 />
 
-                {/* ---------- Description ---------- */}
+                {/* Description */}
                 <textarea
                     name="description"
                     value={form.description}
                     onChange={handleChange}
                     placeholder="Description"
-                    className="w-full p-2 border rounded"
-                    rows={4}
+                    className="w-full p-2 border rounded min-h-[100px]"
                 />
 
-                {/* ---------- Price ---------- */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Price & Currency (responsive) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input
                         name="price"
                         value={form.price}
@@ -175,22 +162,14 @@ export default function AddProperty() {
                         placeholder="Price (INR)"
                         className="p-2 border rounded"
                     />
-
-                    <div className="p-2 border rounded bg-gray-50 flex items-center justify-center font-semibold">
-                        INR
-                    </div>
+                    <div className="p-2 border rounded bg-gray-50 flex items-center justify-center font-semibold">INR</div>
                 </div>
 
-                {/* ---------- Type + Bedrooms + Bathrooms ---------- */}
-                <div className="grid grid-cols-3 gap-4">
+                {/* Type + Bedrooms + Bathrooms (responsive) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label className="block mb-1 text-sm font-medium">Type</label>
-                        <select
-                            name="type"
-                            value={form.type}
-                            onChange={handleChange}
-                            className="p-2 border rounded w-full"
-                        >
+                        <select name="type" value={form.type} onChange={handleChange} className="p-2 border rounded w-full">
                             <option value="sale">Sale</option>
                             <option value="rent">Rent</option>
                         </select>
@@ -215,109 +194,53 @@ export default function AddProperty() {
                     </div>
                 </div>
 
-                {/* ---------- Area ---------- */}
-                <input
-                    name="areaSqFt"
-                    value={form.areaSqFt}
-                    onChange={handleChange}
-                    placeholder="Area in sqft"
-                    className="w-full p-2 border rounded"
-                />
+                {/* Area */}
+                <input name="areaSqFt" value={form.areaSqFt} onChange={handleChange} placeholder="Area in sqft" className="w-full p-2 border rounded" />
 
-                {/* ---------- Address ---------- */}
+                {/* Address */}
                 <div className="space-y-2">
                     <h3 className="font-medium">Address</h3>
-
-                    <input
-                        name="address.street"
-                        value={form.address.street}
-                        onChange={handleChange}
-                        placeholder="Street"
-                        className="w-full p-2 border rounded"
-                    />
-
-                    <div className="grid grid-cols-3 gap-4">
-                        <input
-                            name="address.city"
-                            value={form.address.city}
-                            onChange={handleChange}
-                            placeholder="City"
-                            className="p-2 border rounded"
-                        />
-                        <input
-                            name="address.state"
-                            value={form.address.state}
-                            onChange={handleChange}
-                            placeholder="State"
-                            className="p-2 border rounded"
-                        />
-                        <input
-                            name="address.postalCode"
-                            value={form.address.postalCode}
-                            onChange={handleChange}
-                            placeholder="PIN"
-                            className="p-2 border rounded"
-                        />
+                    <input name="address.street" value={form.address.street} onChange={handleChange} placeholder="Street" className="w-full p-2 border rounded" />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <input name="address.city" value={form.address.city} onChange={handleChange} placeholder="City" className="p-2 border rounded" />
+                        <input name="address.state" value={form.address.state} onChange={handleChange} placeholder="State" className="p-2 border rounded" />
+                        <input name="address.postalCode" value={form.address.postalCode} onChange={handleChange} placeholder="PIN" className="p-2 border rounded" />
                     </div>
                 </div>
 
-                {/* ---------- Image Upload ---------- */}
+                {/* Image Upload */}
                 <div>
                     <label className="block mb-2 font-medium">Property Image (≤ 5MB)</label>
-
                     <label className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer inline-block">
                         Choose Image
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                        />
+                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
                     </label>
 
+                    {/* Responsive preview: small screen full-width, large screen inline */}
                     {preview && (
-                        <div className="mt-3 inline-block relative">
-                            <img src={preview} alt="preview" className="h-32 w-48 object-cover rounded shadow" />
-                            <button
-                                type="button"
-                                onClick={removeImage}
-                                className="absolute top-1 right-1 bg-black text-white w-6 h-6 rounded-full text-xs"
-                            >
-                                ×
-                            </button>
+                        <div className="mt-3">
+                            <img src={preview} alt="preview" className="rounded shadow object-cover w-full sm:w-48 h-40 sm:h-32" />
+                            <button type="button" onClick={removeImage} className="mt-2 sm:mt-0 sm:ml-3 inline-block bg-black text-white rounded w-8 h-8 text-xs">×</button>
                         </div>
                     )}
                 </div>
 
-                {/* ---------- Progress ---------- */}
+                {/* Progress */}
                 {progressPercent > 0 && (
-                    <div className="w-full bg-gray-200 h-2 rounded">
-                        <div
-                            className="h-2 bg-blue-600 rounded"
-                            style={{ width: `${progressPercent}%` }}
-                        />
+                    <div className="w-full bg-gray-200 h-2 rounded mt-2">
+                        <div style={{ width: `${progressPercent}%` }} className="h-2 bg-blue-600 rounded" />
                     </div>
                 )}
 
-                {/* ---------- Error ---------- */}
+                {/* Error */}
                 {error && <p className="text-red-600">{error}</p>}
 
-                {/* ---------- Buttons ---------- */}
-                <div className="flex gap-4">
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-5 py-2 rounded"
-                        disabled={loading}
-                    >
+                {/* Buttons: full width on mobile, inline on desktop */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 text-white px-5 py-2 rounded">
                         {loading ? "Uploading..." : "Create Listing"}
                     </button>
-
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="px-5 py-2 border rounded"
-                    >
+                    <button type="button" onClick={() => navigate(-1)} className="w-full sm:w-auto px-5 py-2 border rounded">
                         Cancel
                     </button>
                 </div>
