@@ -18,10 +18,9 @@ export default function AddPropertyStep2() {
         address: { street: '', city: '', state: '', postalCode: '' }
     });
 
-    // images: File objects
-    const [images, setImages] = useState([]);
-    // previews: data URLs to show thumbnails
-    const [previews, setPreviews] = useState([]);
+    // single image file + preview
+    const [image, setImage] = useState(null);
+    const [preview, setPreview] = useState(null);
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -39,57 +38,45 @@ export default function AddPropertyStep2() {
         }
     };
 
-    // handle image selection and generate previews
-    const handleFiles = (e) => {
-        const files = Array.from(e.target.files || []);
-        // basic client-side validation: limit & type & size
-        const maxFiles = 8;
-        if (files.length + images.length > maxFiles) {
-            setError(`Max ${maxFiles} images allowed`);
+    // handle single image selection and preview
+    const handleFile = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            setError('Only image files allowed');
             return;
         }
-        const valid = [];
-        const newPreviews = [];
-        for (const file of files) {
-            if (!file.type.startsWith('image/')) {
-                setError('Only image files allowed');
-                continue;
-            }
-            if (file.size > 5 * 1024 * 1024) { // 5MB
-                setError('Each image must be <= 5MB');
-                continue;
-            }
-            valid.push(file);
-            // create preview
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                setPreviews(prev => [...prev, ev.target.result]);
-            };
-            reader.readAsDataURL(file);
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+            setError('Image must be <= 5MB');
+            return;
         }
-        setImages(prev => [...prev, ...valid]);
-        // clear previous error if ok
-        if (valid.length) setError('');
-        // reset file input value (if you want to re-select same file)
+        setError('');
+        setImage(file);
+
+        const reader = new FileReader();
+        reader.onload = (ev) => setPreview(ev.target.result);
+        reader.readAsDataURL(file);
+
+        // reset input so same file can be selected again if needed
         e.target.value = '';
     };
 
-    // remove selected image by index
-    const removeImage = (index) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-        setPreviews(prev => prev.filter((_, i) => i !== index));
+    // remove selected image
+    const removeImage = () => {
+        setImage(null);
+        setPreview(null);
     };
 
-    // simple client-side validation before submit
+    // simple validation
     const validate = () => {
         if (!form.title.trim()) return 'Title is required';
         if (!form.price || Number(form.price) <= 0) return 'Enter valid price';
         if (!form.address.city.trim()) return 'City is required';
-        if (images.length < 1) return 'Add at least 1 image';
+        if (!image) return 'Add 1 image';
         return null;
     };
 
-    // submit handler (no server call yet)
+    // submit -> send FormData to backend
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -98,16 +85,37 @@ export default function AddPropertyStep2() {
             setError(err);
             return;
         }
+
         setLoading(true);
         try {
-            // NEXT STEP: send FormData to backend (we'll implement later)
-            // for now just simulate success and navigate to a placeholder page
-            setTimeout(() => {
-                setLoading(false);
-                navigate('/'); // after success go to home
-            }, 800);
+            const fd = new FormData();
+            fd.append('title', form.title);
+            fd.append('description', form.description);
+            fd.append('price', String(form.price));
+            fd.append('currency', form.currency);
+            fd.append('type', form.type);
+            fd.append('furnished', String(form.furnished));
+            fd.append('bedrooms', String(form.bedrooms));
+            fd.append('bathrooms', String(form.bathrooms));
+            fd.append('areaSqFt', String(form.areaSqFt || ''));
+            fd.append('address', JSON.stringify(form.address));
+            // single image key 'image' (backend should use upload.single('image'))
+            fd.append('image', image);
+
+            const res = await fetch('/api/listings/create', {
+                method: 'POST',
+                body: fd,
+                credentials: 'include' // send httpOnly cookie for auth
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.message || 'Create failed');
+
+            navigate(`/listing/${data.property._id}`);
         } catch (err) {
-            setError('Failed to submit');
+            console.error(err);
+            setError(err.message || 'Submit failed');
+        } finally {
             setLoading(false);
         }
     };
@@ -170,16 +178,12 @@ export default function AddPropertyStep2() {
                 </div>
 
                 <div>
-                    <label className="block mb-1 font-medium">Images (max 8, each ≤ 5MB)</label>
-                    <input type="file" multiple accept="image/*" onChange={handleFiles} />
-                    {previews.length > 0 && (
-                        <div className="mt-3 grid grid-cols-4 gap-2">
-                            {previews.map((p, i) => (
-                                <div key={i} className="relative">
-                                    <img src={p} alt={`preview-${i}`} className="h-24 w-full object-cover rounded" />
-                                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black text-white rounded-full w-6 h-6 text-xs">×</button>
-                                </div>
-                            ))}
+                    <label className="block mb-1 font-medium">Image (single, ≤ 5MB)</label>
+                    <input type="file" accept="image/*" onChange={handleFile} />
+                    {preview && (
+                        <div className="mt-3 relative inline-block">
+                            <img src={preview} alt="preview" className="h-32 w-48 object-cover rounded" />
+                            <button type="button" onClick={removeImage} className="absolute top-1 right-1 bg-black text-white rounded-full w-6 h-6 text-xs">×</button>
                         </div>
                     )}
                 </div>
