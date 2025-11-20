@@ -1,200 +1,325 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function AddPropertyStep2() {
+export default function AddProperty() {
     const navigate = useNavigate();
 
-    // form state
     const [form, setForm] = useState({
-        title: '',
-        description: '',
-        price: '',
-        currency: 'INR',
-        type: 'sale',
-        furnished: false,
+        title: "",
+        description: "",
+        price: "",
+        currency: "INR",
+        type: "sale",
         bedrooms: 1,
         bathrooms: 1,
-        areaSqFt: '',
-        address: { street: '', city: '', state: '', postalCode: '' }
+        areaSqFt: "",
+        address: { street: "", city: "", state: "", postalCode: "" },
     });
 
-    // single image file + preview
-    const [image, setImage] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
     const [preview, setPreview] = useState(null);
 
-    const [error, setError] = useState('');
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [progressPercent, setProgressPercent] = useState(0);
 
-    // update simple fields
+    const fileInputRef = useRef(null);
+
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        if (name.startsWith('address.')) {
-            const key = name.split('.')[1];
-            setForm(prev => ({ ...prev, address: { ...prev.address, [key]: value } }));
-        } else if (type === 'checkbox') {
-            setForm(prev => ({ ...prev, [name]: checked }));
+        const { name, value } = e.target;
+
+        if (name.startsWith("address.")) {
+            const key = name.split(".")[1];
+            setForm((prev) => ({
+                ...prev,
+                address: { ...prev.address, [key]: value },
+            }));
         } else {
-            setForm(prev => ({ ...prev, [name]: value }));
+            setForm((prev) => ({ ...prev, [name]: value }));
         }
     };
 
-    // handle single image selection and preview
-    const handleFile = (e) => {
+    const handleFileSelect = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            setError('Only image files allowed');
+
+        if (!file.type.startsWith("image/")) {
+            setError("Only image files allowed");
             return;
         }
-        if (file.size > 5 * 1024 * 1024) { // 5MB
-            setError('Image must be <= 5MB');
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError("Image must be ≤ 5MB");
             return;
         }
-        setError('');
-        setImage(file);
+
+        setImageFile(file);
+        setError("");
 
         const reader = new FileReader();
         reader.onload = (ev) => setPreview(ev.target.result);
         reader.readAsDataURL(file);
-
-        // reset input so same file can be selected again if needed
-        e.target.value = '';
     };
 
-    // remove selected image
     const removeImage = () => {
-        setImage(null);
+        setImageFile(null);
         setPreview(null);
     };
 
-    // simple validation
+    const changeBedrooms = (delta) => {
+        setForm((f) => ({
+            ...f,
+            bedrooms: Math.max(1, f.bedrooms + delta),
+        }));
+    };
+
+    const changeBathrooms = (delta) => {
+        setForm((f) => ({
+            ...f,
+            bathrooms: Math.max(1, f.bathrooms + delta),
+        }));
+    };
+
     const validate = () => {
-        if (!form.title.trim()) return 'Title is required';
-        if (!form.price || Number(form.price) <= 0) return 'Enter valid price';
-        if (!form.address.city.trim()) return 'City is required';
-        if (!image) return 'Add 1 image';
+        if (!form.title.trim()) return "Title is required";
+        if (!form.price || Number(form.price) <= 0) return "Enter valid price";
+        if (!form.address.city.trim()) return "City is required";
+        if (!imageFile) return "You must upload an image";
         return null;
     };
 
-    // submit -> send FormData to backend
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         const err = validate();
-        if (err) {
-            setError(err);
-            return;
-        }
+        if (err) return setError(err);
 
         setLoading(true);
+        setError("");
+        setProgressPercent(0);
+
         try {
             const fd = new FormData();
-            fd.append('title', form.title);
-            fd.append('description', form.description);
-            fd.append('price', String(form.price));
-            fd.append('currency', form.currency);
-            fd.append('type', form.type);
-            fd.append('furnished', String(form.furnished));
-            fd.append('bedrooms', String(form.bedrooms));
-            fd.append('bathrooms', String(form.bathrooms));
-            fd.append('areaSqFt', String(form.areaSqFt || ''));
-            fd.append('address', JSON.stringify(form.address));
-            // single image key 'image' (backend should use upload.single('image'))
-            fd.append('image', image);
+            fd.append("title", form.title);
+            fd.append("description", form.description);
+            fd.append("price", form.price);
+            fd.append("currency", "INR");
+            fd.append("type", form.type);
+            fd.append("bedrooms", form.bedrooms);
+            fd.append("bathrooms", form.bathrooms);
+            fd.append("areaSqFt", form.areaSqFt);
+            fd.append("address", JSON.stringify(form.address));
+            fd.append("image", imageFile);
 
-            const res = await fetch('/api/listings/create', {
-                method: 'POST',
-                body: fd,
-                credentials: 'include' // send httpOnly cookie for auth
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/api/listings/create", true);
+                xhr.withCredentials = true;
+
+                xhr.upload.onprogress = (ev) => {
+                    if (ev.lengthComputable) {
+                        setProgressPercent(Math.round((ev.loaded / ev.total) * 100));
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        const res = JSON.parse(xhr.responseText);
+                        resolve(res);
+                        navigate("/");
+                    } else {
+                        reject(new Error("Upload failed"));
+                    }
+                };
+
+                xhr.onerror = () => reject(new Error("Network error"));
+                xhr.send(fd);
             });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data?.message || 'Create failed');
-
-            navigate(`/listing/${data.property._id}`);
         } catch (err) {
-            console.error(err);
-            setError(err.message || 'Submit failed');
+            setError(err.message);
         } finally {
             setLoading(false);
+            setProgressPercent(0);
         }
     };
 
     return (
         <main className="max-w-3xl mx-auto p-6">
-            <h1 className="text-2xl font-semibold mb-4">Create Listing</h1>
+            <h1 className="text-2xl font-semibold mb-6">Create Listing</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* ---------- Title ---------- */}
                 <input
                     name="title"
                     value={form.title}
                     onChange={handleChange}
-                    placeholder="Title (e.g., 3BHK near Anna Salai)"
+                    placeholder="Title (e.g., 3BHK in Chennai)"
                     className="w-full p-2 border rounded"
                 />
 
+                {/* ---------- Description ---------- */}
                 <textarea
                     name="description"
                     value={form.description}
                     onChange={handleChange}
                     placeholder="Description"
                     className="w-full p-2 border rounded"
-                    rows={5}
+                    rows={4}
                 />
 
-                <div className="grid grid-cols-2 gap-3">
-                    <input name="price" value={form.price} onChange={handleChange} placeholder="Price" className="p-2 border rounded" />
-                    <select name="currency" value={form.currency} onChange={handleChange} className="p-2 border rounded">
-                        <option>INR</option>
-                        <option>USD</option>
-                    </select>
-                </div>
+                {/* ---------- Price ---------- */}
+                <div className="grid grid-cols-2 gap-4">
+                    <input
+                        name="price"
+                        value={form.price}
+                        onChange={handleChange}
+                        placeholder="Price (INR)"
+                        className="p-2 border rounded"
+                    />
 
-                <div className="flex gap-3 items-center">
-                    <select name="type" value={form.type} onChange={handleChange} className="p-2 border rounded">
-                        <option value="sale">Sale</option>
-                        <option value="rent">Rent</option>
-                    </select>
-                    <label className="flex items-center gap-2">
-                        <input type="checkbox" name="furnished" checked={form.furnished} onChange={handleChange} />
-                        Furnished
-                    </label>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                    <input name="bedrooms" value={form.bedrooms} onChange={handleChange} type="number" min={1} className="p-2 border rounded" />
-                    <input name="bathrooms" value={form.bathrooms} onChange={handleChange} type="number" min={1} className="p-2 border rounded" />
-                    <input name="areaSqFt" value={form.areaSqFt} onChange={handleChange} placeholder="Area (sqft)" className="p-2 border rounded" />
-                </div>
-
-                <div className="space-y-2">
-                    <h3 className="font-medium">Address</h3>
-                    <input name="address.street" value={form.address.street} onChange={handleChange} placeholder="Street" className="w-full p-2 border rounded" />
-                    <div className="grid grid-cols-3 gap-3">
-                        <input name="address.city" value={form.address.city} onChange={handleChange} placeholder="City" className="p-2 border rounded" />
-                        <input name="address.state" value={form.address.state} onChange={handleChange} placeholder="State" className="p-2 border rounded" />
-                        <input name="address.postalCode" value={form.address.postalCode} onChange={handleChange} placeholder="PIN" className="p-2 border rounded" />
+                    <div className="p-2 border rounded bg-gray-50 flex items-center justify-center font-semibold">
+                        INR
                     </div>
                 </div>
 
+                {/* ---------- Type + Bedrooms + Bathrooms ---------- */}
+                <div className="grid grid-cols-3 gap-4">
+                    <div>
+                        <label className="block mb-1 text-sm font-medium">Type</label>
+                        <select
+                            name="type"
+                            value={form.type}
+                            onChange={handleChange}
+                            className="p-2 border rounded w-full"
+                        >
+                            <option value="sale">Sale</option>
+                            <option value="rent">Rent</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block mb-1 text-sm font-medium">Bedrooms</label>
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => changeBedrooms(-1)} className="px-3 py-1 border rounded">-</button>
+                            <input readOnly value={form.bedrooms} className="w-12 text-center border rounded p-1" />
+                            <button type="button" onClick={() => changeBedrooms(1)} className="px-3 py-1 border rounded">+</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block mb-1 text-sm font-medium">Bathrooms</label>
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => changeBathrooms(-1)} className="px-3 py-1 border rounded">-</button>
+                            <input readOnly value={form.bathrooms} className="w-12 text-center border rounded p-1" />
+                            <button type="button" onClick={() => changeBathrooms(1)} className="px-3 py-1 border rounded">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ---------- Area ---------- */}
+                <input
+                    name="areaSqFt"
+                    value={form.areaSqFt}
+                    onChange={handleChange}
+                    placeholder="Area in sqft"
+                    className="w-full p-2 border rounded"
+                />
+
+                {/* ---------- Address ---------- */}
+                <div className="space-y-2">
+                    <h3 className="font-medium">Address</h3>
+
+                    <input
+                        name="address.street"
+                        value={form.address.street}
+                        onChange={handleChange}
+                        placeholder="Street"
+                        className="w-full p-2 border rounded"
+                    />
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <input
+                            name="address.city"
+                            value={form.address.city}
+                            onChange={handleChange}
+                            placeholder="City"
+                            className="p-2 border rounded"
+                        />
+                        <input
+                            name="address.state"
+                            value={form.address.state}
+                            onChange={handleChange}
+                            placeholder="State"
+                            className="p-2 border rounded"
+                        />
+                        <input
+                            name="address.postalCode"
+                            value={form.address.postalCode}
+                            onChange={handleChange}
+                            placeholder="PIN"
+                            className="p-2 border rounded"
+                        />
+                    </div>
+                </div>
+
+                {/* ---------- Image Upload ---------- */}
                 <div>
-                    <label className="block mb-1 font-medium">Image (single, ≤ 5MB)</label>
-                    <input type="file" accept="image/*" onChange={handleFile} />
+                    <label className="block mb-2 font-medium">Property Image (≤ 5MB)</label>
+
+                    <label className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer inline-block">
+                        Choose Image
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+                    </label>
+
                     {preview && (
-                        <div className="mt-3 relative inline-block">
-                            <img src={preview} alt="preview" className="h-32 w-48 object-cover rounded" />
-                            <button type="button" onClick={removeImage} className="absolute top-1 right-1 bg-black text-white rounded-full w-6 h-6 text-xs">×</button>
+                        <div className="mt-3 inline-block relative">
+                            <img src={preview} alt="preview" className="h-32 w-48 object-cover rounded shadow" />
+                            <button
+                                type="button"
+                                onClick={removeImage}
+                                className="absolute top-1 right-1 bg-black text-white w-6 h-6 rounded-full text-xs"
+                            >
+                                ×
+                            </button>
                         </div>
                     )}
                 </div>
 
-                {error && <div className="text-red-600">{error}</div>}
+                {/* ---------- Progress ---------- */}
+                {progressPercent > 0 && (
+                    <div className="w-full bg-gray-200 h-2 rounded">
+                        <div
+                            className="h-2 bg-blue-600 rounded"
+                            style={{ width: `${progressPercent}%` }}
+                        />
+                    </div>
+                )}
 
-                <div className="flex gap-3">
-                    <button type="submit" disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">
-                        {loading ? 'Saving...' : 'Save & Continue'}
+                {/* ---------- Error ---------- */}
+                {error && <p className="text-red-600">{error}</p>}
+
+                {/* ---------- Buttons ---------- */}
+                <div className="flex gap-4">
+                    <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-5 py-2 rounded"
+                        disabled={loading}
+                    >
+                        {loading ? "Uploading..." : "Create Listing"}
                     </button>
-                    <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 border rounded">Cancel</button>
+
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="px-5 py-2 border rounded"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </form>
         </main>
