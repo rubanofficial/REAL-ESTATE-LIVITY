@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import livityLogo from '../assets/LOGO.png';
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    // ❗ Temporary login state (later connect with real auth)
-    const currentUser = null; // change to {} to test logged-in mode
+    // ❗ Temporary login state (later connect with real auth/context)
+    // For testing: set to null (logged out) or a truthy object (logged in).
+    // e.g. const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = null;
+
+    const handleAddPropertyClick = () => {
+        if (currentUser) {
+            navigate('/add-property');
+        } else {
+            // pass where to redirect after successful sign-in
+            navigate('/sign-in', { state: { redirectTo: '/add-property' } });
+        }
+    };
 
     return (
         <header className="bg-white shadow-md sticky top-0 z-50">
@@ -19,44 +32,33 @@ export default function Header() {
                     <img src={livityLogo} alt="Livity Logo" className="h-10 object-contain" />
                 </Link>
 
-                {/* --- DESKTOP NAVIGATION --- */}
+                {/* DESKTOP NAV */}
                 <nav className="hidden sm:flex items-center">
                     <ul className="flex gap-6 items-center">
 
-                        {/* Home Link */}
                         <Link to="/">
-                            <li className="text-slate-700 hover:text-blue-600 transition duration-300">
-                                Home
-                            </li>
+                            <li className="text-slate-700 hover:text-blue-600 transition duration-300">Home</li>
                         </Link>
 
-                        {/* Properties */}
                         <Link to="/search">
-                            <li className="text-slate-700 hover:text-blue-600 transition duration-300">
-                                Properties
-                            </li>
+                            <li className="text-slate-700 hover:text-blue-600 transition duration-300">Properties</li>
                         </Link>
 
-                        {/* About */}
                         <Link to="/about">
-                            <li className="text-slate-700 hover:text-blue-600 transition duration-300">
-                                About
-                            </li>
+                            <li className="text-slate-700 hover:text-blue-600 transition duration-300">About</li>
                         </Link>
 
-                        {/* + ADD PROPERTY BUTTON (Everyone sees it) */}
-                        <Link to={currentUser ? "/add-property" : "/sign-in"}>
-                            <li className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-900 transition duration-300">
-                                + Add Property
-                            </li>
-                        </Link>
+                        {/* + ADD PROPERTY (uses navigate so we can pass redirect state) */}
+                        <li
+                            onClick={handleAddPropertyClick}
+                            className="bg-black cursor-pointer text-white px-4 py-2 rounded-md hover:bg-gray-900 transition duration-300"
+                        >
+                            + Add Property
+                        </li>
 
-                        {/* SHOW Profile if logged-in, else show SignUp */}
                         {currentUser ? (
                             <Link to="/profile">
-                                <li className="text-slate-700 hover:text-blue-600 transition duration-300">
-                                    Profile
-                                </li>
+                                <li className="text-slate-700 hover:text-blue-600 transition duration-300">Profile</li>
                             </Link>
                         ) : (
                             <Link to="/sign-up">
@@ -68,7 +70,7 @@ export default function Header() {
                     </ul>
                 </nav>
 
-                {/* MOBILE MENU ICON */}
+                {/* MOBILE ICON */}
                 <div className="sm:hidden">
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-700 text-2xl">
                         {isMenuOpen ? <FaTimes /> : <FaBars />}
@@ -76,7 +78,7 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* --- MOBILE MENU DROPDOWN --- */}
+            {/* MOBILE MENU */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
@@ -87,39 +89,31 @@ export default function Header() {
                         className="sm:hidden bg-white shadow-lg absolute top-16 left-0 w-full"
                     >
                         <ul className="flex flex-col items-center gap-4 p-4">
+                            <Link to="/" onClick={() => setIsMenuOpen(false)}><li className="text-slate-700 hover:underline">Home</li></Link>
 
-                            <Link to="/" onClick={() => setIsMenuOpen(false)}>
-                                <li className="text-slate-700 hover:underline">Home</li>
-                            </Link>
+                            <Link to="/search" onClick={() => setIsMenuOpen(false)}><li className="text-slate-700 hover:underline">Properties</li></Link>
 
-                            <Link to="/search" onClick={() => setIsMenuOpen(false)}>
-                                <li className="text-slate-700 hover:underline">Properties</li>
-                            </Link>
+                            <Link to="/about" onClick={() => setIsMenuOpen(false)}><li className="text-slate-700 hover:underline">About</li></Link>
 
-                            <Link to="/about" onClick={() => setIsMenuOpen(false)}>
-                                <li className="text-slate-700 hover:underline">About</li>
-                            </Link>
-
-                            {/* MOBILE Add Property */}
-                            <Link
-                                to={currentUser ? "/add-property" : "/sign-in"}
-                                onClick={() => setIsMenuOpen(false)}
+                            {/* Mobile Add Property uses navigate + redirect state */}
+                            <li
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    if (currentUser) navigate('/add-property');
+                                    else navigate('/sign-in', { state: { redirectTo: '/add-property' } });
+                                }}
+                                className="text-white bg-black px-4 py-2 rounded-md cursor-pointer"
                             >
-                                <li className="text-white bg-black px-4 py-2 rounded-md">
-                                    + Add Property
-                                </li>
-                            </Link>
+                                + Add Property
+                            </li>
 
-                            {/* SIGN IN / PROFILE */}
                             {currentUser ? (
                                 <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
                                     <li className="text-slate-700 hover:underline">Profile</li>
                                 </Link>
                             ) : (
                                 <Link to="/sign-up" onClick={() => setIsMenuOpen(false)}>
-                                    <li className="bg-blue-600 text-white px-4 py-2 rounded-md">
-                                        Sign Up
-                                    </li>
+                                    <li className="bg-blue-600 text-white px-4 py-2 rounded-md">Sign Up</li>
                                 </Link>
                             )}
                         </ul>
