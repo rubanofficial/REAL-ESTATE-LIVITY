@@ -12,7 +12,7 @@ export default function Header() {
     // ❗ Temporary login state (later connect with real auth/context)
     // For testing: set to null (logged out) or a truthy object (logged in).
     // e.g. const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const currentUser = null;
+    const currentUser = localStorage.getItem("user");
 
     const handleAddPropertyClick = () => {
         if (currentUser) {

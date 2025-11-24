@@ -52,6 +52,7 @@ export default function SignIn() {
 
             setLoading(false);
             // navigate back to where user wanted to go
+            localStorage.setItem("user", "logged-in");
             navigate(redirectPath, { replace: true });
         } catch (err) {
             setLoading(false);
