@@ -9,18 +9,22 @@ export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // ❗ Temporary login state (later connect with real auth/context)
-    // For testing: set to null (logged out) or a truthy object (logged in).
-    // e.g. const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    // read user from localStorage
     const currentUser = localStorage.getItem("user");
 
     const handleAddPropertyClick = () => {
         if (currentUser) {
             navigate('/add-property');
         } else {
-            // pass where to redirect after successful sign-in
             navigate('/sign-in', { state: { redirectTo: '/add-property' } });
         }
+    };
+
+    // LOGOUT function
+    const handleLogout = () => {
+        localStorage.removeItem("user");  // clear login status
+        navigate("/");                   // go home
+        window.location.reload();        // refresh UI
     };
 
     return (
@@ -48,7 +52,7 @@ export default function Header() {
                             <li className="text-slate-700 hover:text-blue-600 transition duration-300">About</li>
                         </Link>
 
-                        {/* + ADD PROPERTY (uses navigate so we can pass redirect state) */}
+                        {/* Add Property */}
                         <li
                             onClick={handleAddPropertyClick}
                             className="bg-black cursor-pointer text-white px-4 py-2 rounded-md hover:bg-gray-900 transition duration-300"
@@ -57,9 +61,21 @@ export default function Header() {
                         </li>
 
                         {currentUser ? (
-                            <Link to="/profile">
-                                <li className="text-slate-700 hover:text-blue-600 transition duration-300">Profile</li>
-                            </Link>
+                            <>
+                                <Link to="/profile">
+                                    <li className="text-slate-700 hover:text-blue-600 transition duration-300">
+                                        Profile
+                                    </li>
+                                </Link>
+
+                                {/* Desktop logout */}
+                                <li
+                                    onClick={handleLogout}
+                                    className="cursor-pointer text-red-600 font-semibold hover:text-red-700 transition duration-300"
+                                >
+                                    Logout
+                                </li>
+                            </>
                         ) : (
                             <Link to="/sign-up">
                                 <li className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-300">
@@ -89,18 +105,24 @@ export default function Header() {
                         className="sm:hidden bg-white shadow-lg absolute top-16 left-0 w-full"
                     >
                         <ul className="flex flex-col items-center gap-4 p-4">
-                            <Link to="/" onClick={() => setIsMenuOpen(false)}><li className="text-slate-700 hover:underline">Home</li></Link>
 
-                            <Link to="/search" onClick={() => setIsMenuOpen(false)}><li className="text-slate-700 hover:underline">Properties</li></Link>
+                            <Link to="/" onClick={() => setIsMenuOpen(false)}>
+                                <li className="text-slate-700 hover:underline">Home</li>
+                            </Link>
 
-                            <Link to="/about" onClick={() => setIsMenuOpen(false)}><li className="text-slate-700 hover:underline">About</li></Link>
+                            <Link to="/search" onClick={() => setIsMenuOpen(false)}>
+                                <li className="text-slate-700 hover:underline">Properties</li>
+                            </Link>
 
-                            {/* Mobile Add Property uses navigate + redirect state */}
+                            <Link to="/about" onClick={() => setIsMenuOpen(false)}>
+                                <li className="text-slate-700 hover:underline">About</li>
+                            </Link>
+
+                            {/* Add Property */}
                             <li
                                 onClick={() => {
                                     setIsMenuOpen(false);
-                                    if (currentUser) navigate('/add-property');
-                                    else navigate('/sign-in', { state: { redirectTo: '/add-property' } });
+                                    handleAddPropertyClick();
                                 }}
                                 className="text-white bg-black px-4 py-2 rounded-md cursor-pointer"
                             >
@@ -108,9 +130,18 @@ export default function Header() {
                             </li>
 
                             {currentUser ? (
-                                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                                    <li className="text-slate-700 hover:underline">Profile</li>
-                                </Link>
+                                <>
+                                    {/* MOBILE logout */}
+                                    <li
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            handleLogout();
+                                        }}
+                                        className="cursor-pointer text-red-600 font-semibold hover:text-red-700 transition duration-300"
+                                    >
+                                        Logout
+                                    </li>
+                                </>
                             ) : (
                                 <Link to="/sign-up" onClick={() => setIsMenuOpen(false)}>
                                     <li className="bg-blue-600 text-white px-4 py-2 rounded-md">Sign Up</li>

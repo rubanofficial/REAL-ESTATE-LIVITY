@@ -10,20 +10,21 @@ const listingSchema = new mongoose.Schema({
     bedrooms: Number,
     bathrooms: Number,
     areaSqFt: Number,
+
     address: {
         street: String,
-        city: String,
+        city: { type: String, required: true },
         state: String,
         postalCode: String,
     },
-    images: [
-        {
-            url: String,
-            public_id: String,
-            uploader: mongoose.Schema.Types.ObjectId,
-        },
-    ],
+
+    // SINGLE image (matches your AddProperty form)
+    image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+    },
+
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-});
+}, { timestamps: true });
 
 export default mongoose.model("Listing", listingSchema);
