@@ -4,69 +4,72 @@ import { uploadBufferToCloudinary, cloudinary } from "../utils/cloudinary.js";
 
 export async function createListing(req, res) {
     try {
-        // 1. Auth
-        if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+        // AUTH CHECK
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
-        // 2. File
-        const file = req.file;
-        if (!file) return res.status(400).json({ message: "Image (field 'image') is required" });
+        if (!req.file) {
+            return res.status(400).json({ message: "Image file is required" });
+        }
 
-        // 3. Fields
         const {
-            title = "",
-            description = "",
+            title,
+            description,
             price,
             currency = "INR",
             type = "sale",
-            furnished = false,
             bedrooms = 1,
             bathrooms = 1,
             areaSqFt = 0,
             address
         } = req.body;
 
-        if (!title.trim()) return res.status(400).json({ message: "Title required" });
-        if (!price || Number(price) <= 0) return res.status(400).json({ message: "Valid price required" });
+        if (!title?.trim()) {
+            return res.status(400).json({ message: "Title is required" });
+        }
+        if (!price || Number(price) <= 0) {
+            return res.status(400).json({ message: "Valid price required" });
+        }
 
-        // 4. Parse address if frontend sends JSON string
+        // Parse address JSON
         let addressObj = {};
         try {
-            addressObj = typeof address === "string" ? JSON.parse(address) : (address || {});
-        } catch (e) {
+            addressObj = typeof address === "string" ? JSON.parse(address) : address;
+        } catch {
             return res.status(400).json({ message: "Address must be valid JSON" });
         }
-        if (!addressObj.city || !String(addressObj.city).trim()) return res.status(400).json({ message: "City required" });
 
-        // 5. Upload image buffer to Cloudinary
-        const uploadResult = await uploadBufferToCloudinary(file.buffer, "rems_listings");
+        if (!addressObj?.city) {
+            return res.status(400).json({ message: "City is required" });
+        }
 
-        // 6. Create listing document
+        // CLOUDINARY UPLOAD
+        const uploadResult = await uploadBufferToCloudinary(req.file.buffer, "rems_listings");
+
         const listing = new Listing({
-            title: title.trim(),
+            title,
             description,
             price: Number(price),
             currency,
             type,
-            furnished: furnished === "true" || furnished === true,
-            bedrooms: Number(bedrooms) || 1,
-            bathrooms: Number(bathrooms) || 1,
-            areaSqFt: Number(areaSqFt) || 0,
+            bedrooms: Number(bedrooms),
+            bathrooms: Number(bathrooms),
+            areaSqFt: Number(areaSqFt),
             address: addressObj,
-            image: { url: uploadResult.url, public_id: uploadResult.public_id },
+            image: {
+                url: uploadResult.url,
+                public_id: uploadResult.public_id
+            },
             owner: req.user._id,
         });
 
         await listing.save();
 
-        // 7. Return created listing
         return res.status(201).json({ property: listing });
+
     } catch (err) {
         console.error("Create listing error:", err);
-
-        // if upload created an image but DB failed, attempt to delete it (best-effort)
-        if (err?.uploadResult?.public_id) {
-            try { await cloudinary.uploader.destroy(err.uploadResult.public_id); } catch (e) { }
-        }
         return res.status(500).json({ message: "Server error", error: err.message });
     }
 }

@@ -1,42 +1,37 @@
-// --- 1. Imports ---
+// server/index.js
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import cors from 'cors'; // ✅ Important if frontend and backend run on different ports
-import authRouter from './routes/auth.route.js';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
-// --- 2. Initial Setup ---
+
+import authRouter from './routes/auth.route.js';
+import listingRouter from './routes/listing.route.js';
+
 dotenv.config();
 
-// --- 3. Database Connection ---
+// --- DB CONNECT ---
 mongoose
     .connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log('✅ Successfully connected to MongoDB!');
-    })
-    .catch((err) => {
-        console.error('❌ Failed to connect to MongoDB:', err);
-    });
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch(err => console.error("❌ MongoDB Error:", err));
 
-// --- 4. Create the Express App ---
 const app = express();
 
-// --- 5. Middlewares ---
+// --- CORS (VERY IMPORTANT) ---
 app.use(cors({
-    origin: ["http://localhost:10000", "https://rems-backend-gfbp.onrender.com"],
+    origin: "http://localhost:5173",
     credentials: true,
 }));
-// ✅ allows frontend (5173) to talk to backend (5000)
-app.use(express.json()); // ✅ parses incoming JSON requests
+
+app.use(express.json());
 app.use(cookieParser());
-// --- 6. Define API Routes ---
-app.use('/api/auth', authRouter);
 
-// --- 7. Start the Server (for local development) ---
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// --- ROUTES ---
+app.use("/api/auth", authRouter);
+app.use("/api/listings", listingRouter);
 
-// --- 8. Export for Vercel (optional, won’t affect local run) ---
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+
 export default app;

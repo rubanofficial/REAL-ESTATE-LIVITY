@@ -6,7 +6,7 @@ import { createListing } from "../controllers/listing.controller.js";
 
 const router = express.Router();
 
-// POST /api/listings/create  (multipart/form-data, field "image")
+// POST /api/listings/create
 router.post("/create", authenticate, upload.single("image"), createListing);
 
 export default router;
