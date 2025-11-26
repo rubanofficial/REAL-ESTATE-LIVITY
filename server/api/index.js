@@ -23,7 +23,7 @@ const app = express();
 
 // --- 5. Middlewares ---
 app.use(cors({
-    origin: ["http://localhost:5173", "https://rems-backend-gfbp.onrender.com"],
+    origin: ["http://localhost:10000", "https://rems-backend-gfbp.onrender.com"],
     credentials: true,
 }));
 // ✅ allows frontend (5173) to talk to backend (5000)

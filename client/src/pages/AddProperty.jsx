@@ -97,9 +97,13 @@ export default function AddProperty() {
             fd.append("address", JSON.stringify(form.address));
             fd.append("image", imageFile);
 
+            // <-- IMPORTANT: set API_BASE to your backend origin
+            const API_BASE = import.meta.env.DEV ? "http://localhost:5000" : "";
+
             await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
-                xhr.open("POST", "/api/listings/create", true);
+                // use full backend URL so request goes to server (not vite dev server)
+                xhr.open("POST", `${API_BASE}/api/listings/create`, true);
                 xhr.withCredentials = true;
 
                 xhr.upload.onprogress = (ev) => {
