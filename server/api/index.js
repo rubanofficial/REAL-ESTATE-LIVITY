@@ -1,14 +1,21 @@
 // server/index.js
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
+import dotenv from "dotenv";
+dotenv.config(); // <-- MUST be first (before other imports that use env vars)
 
-import authRouter from './routes/auth.route.js';
-import listingRouter from './routes/listing.route.js';
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
-dotenv.config();
+import authRouter from "./routes/auth.route.js";
+import listingRouter from "./routes/listing.route.js";
+
+// quick debug checks (remove after verifying)
+console.log("ENV CLOUD_NAME:", !!process.env.CLOUD_NAME ? "SET" : "MISSING");
+console.log("ENV CLOUD_KEY:", !!process.env.CLOUD_KEY ? "SET" : "MISSING");
+console.log("ENV CLOUD_SECRET:", !!process.env.CLOUD_SECRET ? "SET" : "MISSING");
+console.log("ENV PORT:", process.env.PORT || "(not set, using default)");
+
 
 // --- DB CONNECT ---
 mongoose
