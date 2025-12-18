@@ -16,13 +16,18 @@ export default function PropertyPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const API_BASE = import.meta.env.DEV
+        ? 'http://localhost:10000'
+        : import.meta.env.VITE_BACKEND_URL;
+
     useEffect(() => {
         let cancelled = false;
+
         const fetchProperty = async () => {
             try {
                 setLoading(true);
                 setError('');
-                const res = await fetch(`/api/listings/${id}`);
+                const res = await fetch(`${API_BASE}/api/listings/${id}`);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data?.message || 'Failed to fetch');
                 if (!cancelled) setProperty(data.property);
@@ -32,6 +37,7 @@ export default function PropertyPage() {
                 if (!cancelled) setLoading(false);
             }
         };
+
         if (id) fetchProperty();
         return () => { cancelled = true; };
     }, [id]);
@@ -57,7 +63,9 @@ export default function PropertyPage() {
         return (
             <main className="max-w-4xl mx-auto p-6 text-center">
                 <p className="text-red-600 mb-4">Error: {error}</p>
-                <Link to="/properties" className="text-blue-600 underline">Back to listings</Link>
+                <Link to="/properties" className="text-blue-600 underline">
+                    Back to listings
+                </Link>
             </main>
         );
     }
@@ -66,32 +74,56 @@ export default function PropertyPage() {
         return (
             <main className="max-w-4xl mx-auto p-6 text-center">
                 <p>No property found.</p>
-                <Link to="/properties" className="text-blue-600 underline">Back to listings</Link>
+                <Link to="/properties" className="text-blue-600 underline">
+                    Back to listings
+                </Link>
             </main>
         );
     }
 
     const {
-        title, description, price, currency = 'INR',
-        type, furnished, bedrooms, bathrooms, areaSqFt,
-        address = {}, images = [], owner
+        title,
+        description,
+        price,
+        currency = 'INR',
+        type,
+        furnished,
+        bedrooms,
+        bathrooms,
+        areaSqFt,
+        address = {},
+        image,
+        owner
     } = property;
 
-    const mainImage = images?.[0]?.url || '/placeholder-house.png';
+    const mainImage = image?.url || '/placeholder-house.png';
 
     return (
         <main className="max-w-6xl mx-auto p-6">
             <div className="rounded overflow-hidden mb-6">
-                <img src={mainImage} alt={title} className="w-full h-72 object-cover" />
+                <img
+                    src={mainImage}
+                    alt={title}
+                    className="w-full h-72 object-cover"
+                />
             </div>
 
             <div className="grid grid-cols-3 gap-6">
                 <section className="col-span-2">
                     <h1 className="text-2xl font-semibold mb-2">{title}</h1>
+
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="text-2xl font-bold">{currency} {Number(price).toLocaleString()}</div>
-                        <div className="px-2 py-1 bg-gray-100 rounded text-sm">{type?.toUpperCase()}</div>
-                        {furnished && <div className="px-2 py-1 bg-green-100 rounded text-sm">Furnished</div>}
+                        <div className="text-2xl font-bold">
+                            {currency} {Number(price).toLocaleString()}
+                        </div>
+                        <div className="px-2 py-1 bg-gray-100 rounded text-sm">
+                            {type?.toUpperCase()}
+                        </div>
+                        {furnished && (
+                            <div className="px-2 py-1 bg-green-100 rounded text-sm">
+                                Furnished
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-6 text-sm text-gray-700 mb-4">
@@ -101,15 +133,21 @@ export default function PropertyPage() {
                     </div>
 
                     <h3 className="font-medium mb-2">Description</h3>
-                    <p className="text-gray-800 whitespace-pre-line">{description}</p>
+                    <p className="text-gray-800 whitespace-pre-line">
+                        {description}
+                    </p>
 
                     <div className="mt-6">
                         <h4 className="font-medium mb-2">Gallery</h4>
-                        <div className="grid grid-cols-3 gap-2">
-                            {images.length ? images.slice(0, 6).map((img, i) => (
-                                <img key={i} src={img.url} alt={`img-${i}`} className="h-28 w-full object-cover rounded" />
-                            )) : <div className="text-sm text-gray-500">No images</div>}
-                        </div>
+                        {image?.url ? (
+                            <img
+                                src={image.url}
+                                alt="property"
+                                className="h-28 w-40 object-cover rounded"
+                            />
+                        ) : (
+                            <div className="text-sm text-gray-500">No images</div>
+                        )}
                     </div>
                 </section>
 
@@ -126,10 +164,18 @@ export default function PropertyPage() {
                     <div className="mb-4">
                         <h4 className="font-medium">Seller</h4>
                         <div className="flex items-center gap-3">
-                            <img src={owner?.avatar || '/avatar-placeholder.png'} alt="seller" className="h-10 w-10 rounded-full object-cover" />
+                            <img
+                                src={owner?.avatar || '/avatar-placeholder.png'}
+                                alt="seller"
+                                className="h-10 w-10 rounded-full object-cover"
+                            />
                             <div>
-                                <div className="text-sm font-medium">{owner?.username || 'Seller'}</div>
-                                <div className="text-xs text-gray-500">{owner?.email}</div>
+                                <div className="text-sm font-medium">
+                                    {owner?.username || 'Seller'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    {owner?.email}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -147,7 +193,12 @@ export default function PropertyPage() {
                         >
                             Copy link
                         </button>
-                        <Link to="/properties" className="text-sm text-gray-600 underline text-center">Back to search</Link>
+                        <Link
+                            to="/properties"
+                            className="text-sm text-gray-600 underline text-center"
+                        >
+                            Back to search
+                        </Link>
                     </div>
                 </aside>
             </div>

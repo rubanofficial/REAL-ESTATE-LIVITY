@@ -8,6 +8,8 @@ import Footer from './components/Footer';
 import SignIn from './pages/SignIn';
 import AddProperty from './pages/AddProperty';
 import PropertyPage from './pages/PropertyPage';
+import Properties from "./pages/Properties";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -20,6 +22,8 @@ export default function App() {
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/listing/:id" element={<PropertyPage />} />
         <Route path="/add-property" element={<AddProperty />} />
+        <Route path="/search" element={<Properties />} />
+
       </Routes>
       <Footer />
     </BrowserRouter>
