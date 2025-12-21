@@ -9,6 +9,7 @@ import SignIn from './pages/SignIn';
 import AddProperty from './pages/AddProperty';
 import PropertyPage from './pages/PropertyPage';
 import Properties from "./pages/Properties";
+import Wishlist from "./pages/Wishlist";
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
         <Route path="/listing/:id" element={<PropertyPage />} />
         <Route path="/add-property" element={<AddProperty />} />
         <Route path="/search" element={<Properties />} />
-
+        <Route path="/wishlist" element={<Wishlist />} />
       </Routes>
       <Footer />
     </BrowserRouter>
