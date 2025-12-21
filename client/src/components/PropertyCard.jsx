@@ -1,32 +1,82 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MdLocationOn } from 'react-icons/md';
-import { FaBed, FaBath } from 'react-icons/fa';
+import { FaBed, FaBath, FaHeart } from 'react-icons/fa';
 
 export default function PropertyCard({ listing }) {
 
-    // 🔹 1. Handle image from DB or dummy data
+    // ❤️ wishlist state (local)
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const API_BASE = import.meta.env.DEV
+        ? "http://localhost:10000"
+        : import.meta.env.VITE_BACKEND_URL;
+
+    // 🔹 Handle image
     const imageSrc =
         listing.image?.url ||
         (listing.imageUrls && listing.imageUrls[0]) ||
         'https://images.unsplash.com/photo-1512917774080-9991f1c4c750';
 
-    // 🔹 2. Handle title/name
+    // 🔹 Handle title
     const title = listing.title || listing.name;
 
-    // 🔹 3. Handle address (object or string)
+    // 🔹 Handle address
     const address =
         typeof listing.address === 'string'
             ? listing.address
             : listing.address?.city || '';
 
-    // 🔹 4. Handle price (DB or dummy)
+    // 🔹 Handle price
     const price = listing.offer
         ? listing.discountPrice
         : listing.price || listing.regularPrice;
 
+    // ❤️ Wishlist click handler
+    const handleFavorite = async (e) => {
+        e.preventDefault(); // stop Link navigation
+        e.stopPropagation();
+
+        try {
+            setLoading(true);
+
+            const res = await fetch(
+                `${API_BASE}/api/users/favorites/${listing._id}`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error("Failed to update wishlist");
+            }
+
+            // toggle heart UI
+            setIsFavorited(!isFavorited);
+        } catch (err) {
+            console.error("Wishlist error:", err);
+            alert("Please login to add wishlist");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="bg-white shadow-md hover:shadow-lg transition-shadow overflow-hidden rounded-lg w-full sm:w-[330px] group">
+        <div className="bg-white shadow-md hover:shadow-lg transition-shadow overflow-hidden rounded-lg w-full sm:w-[330px] group relative">
+
+            {/* ❤️ WISHLIST BUTTON */}
+            <button
+                onClick={handleFavorite}
+                disabled={loading}
+                className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow"
+            >
+                <FaHeart
+                    className={`text-lg ${isFavorited ? "text-red-500" : "text-gray-400"
+                        }`}
+                />
+            </button>
 
             <Link to={`/listing/${listing._id}`}>
 

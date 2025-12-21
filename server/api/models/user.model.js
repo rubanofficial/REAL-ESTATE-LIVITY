@@ -1,43 +1,51 @@
-// 1. Import mongoose, which we need to create a Schema
+// 1. Import mongoose
 import mongoose from 'mongoose';
 
-// 2. Define the schema (the "blueprint" or "recipe" for a user)
+// 2. Define the schema
 const userSchema = new mongoose.Schema(
     {
-        // The 'username' field
+        // Username
         username: {
-            type: String, // Must be a string
-            required: true, // It is required
-            unique: true, // It must be unique (no two users can have the same username)
+            type: String,
+            required: true,
+            unique: true,
         },
-        // The 'email' field
+
+        // Email
         email: {
             type: String,
             required: true,
             unique: true,
         },
-        // The 'password' field
+
+        // Password (hashed)
         password: {
             type: String,
             required: true,
         },
-        // The 'avatar' field for the user's profile picture
+
+        // Profile picture
         avatar: {
             type: String,
-            // 3. A default value, so every user has a profile pic
             default:
                 'https://static.vecteezy.com/system/resources/previews/005/544/718/original/profile-icon-design-free-vector.jpg',
         },
+
+        // ❤️ WISHLIST / FAVORITES
+        favorites: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Listing', // reference to Listing collection
+            },
+        ],
     },
-    // 4. Add timestamps
-    // This automatically adds 'createdAt' and 'updatedAt' fields
-    { timestamps: true }
+    {
+        timestamps: true,
+    }
 );
 
-// 5. Create the User model from the schema
-// Mongoose will create a collection named 'users' (lowercase, plural)
+// 3. Create the model
 const User = mongoose.model('User', userSchema);
 
-// 6. Export the model so our controller can use it
+// 4. Export the model
 export default User;
-

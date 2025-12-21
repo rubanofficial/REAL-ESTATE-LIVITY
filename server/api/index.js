@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 
 import authRouter from "./routes/auth.route.js";
 import listingRouter from "./routes/listing.route.js";
+import userRouter from "./routes/user.route.js";
 
 // quick debug checks (remove after verifying)
 console.log("ENV CLOUD_NAME:", !!process.env.CLOUD_NAME ? "SET" : "MISSING");
@@ -37,6 +38,7 @@ app.use(cookieParser());
 // --- ROUTES ---
 app.use("/api/auth", authRouter);
 app.use("/api/listings", listingRouter);
+app.use("/api/users", userRouter);
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
