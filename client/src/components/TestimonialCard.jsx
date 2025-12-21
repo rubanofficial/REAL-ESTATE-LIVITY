@@ -5,6 +5,7 @@ import { FaQuoteLeft, FaStar } from 'react-icons/fa';
 export default function TestimonialCard({ testimonial }) {
     const { quote, name, location, rating } = testimonial;
 
+
     return (
         // 'h-full' ensures all cards in the slider have the same height
         <div className="bg-white p-8 rounded-lg shadow-md flex flex-col h-full">
