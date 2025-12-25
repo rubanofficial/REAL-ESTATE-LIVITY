@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import livityLogo from "../assets/LOGO.png";
 import { motion } from "framer-motion";
+import livityLogo from "../assets/LOGO.png";
 
-export default function SignUp() {
+export default function SignIn() {
     const [formData, setFormData] = useState({});
-    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+    const [error, setError] = useState("");
 
-    const API_BASE = import.meta.env.VITE_BACKEND_URL;
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({
@@ -22,98 +21,101 @@ export default function SignUp() {
         e.preventDefault();
         try {
             setLoading(true);
-            setError(null);
+            setError("");
 
-            const res = await fetch(`${API_BASE}/api/auth/signup`, {
+            const res = await fetch("/api/auth/signin", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(formData),
-                credentials: "include", // ✅ REQUIRED
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.message || "Signup failed");
+                setError(data.message || "Invalid credentials");
                 setLoading(false);
                 return;
             }
 
-            setLoading(false);
-            navigate("/sign-in");
+            localStorage.setItem("user", "logged-in");
+            navigate("/");
         } catch (err) {
-            console.error("Signup error:", err);
-            setLoading(false);
             setError("Network error. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="p-3 max-w-lg mx-auto min-h-screen">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                <div className="flex justify-center mt-10 mb-6">
-                    <img src={livityLogo} alt="Livity Logo" className="h-12" />
-                </div>
+        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+            {/* LEFT SIDE – BRAND / INFO */}
+            <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-10">
+                <img src={livityLogo} alt="Livity" className="h-14 mb-6" />
+                <h1 className="text-4xl font-bold mb-4">Welcome Back</h1>
+                <p className="text-lg text-center max-w-md opacity-90">
+                    Sign in to manage your properties, track listings, and connect with buyers.
+                </p>
+            </div>
 
-                <h1 className="text-3xl text-center font-semibold my-7">
-                    Create Your Account
-                </h1>
-
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        id="username"
-                        onChange={handleChange}
-                        required
-                        className="border p-3 rounded-lg"
-                    />
-
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        id="email"
-                        onChange={handleChange}
-                        required
-                        className="border p-3 rounded-lg"
-                    />
-
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        id="password"
-                        onChange={handleChange}
-                        required
-                        className="border p-3 rounded-lg"
-                    />
-
-                    <button
-                        disabled={loading}
-                        className="bg-blue-600 text-white p-3 rounded-lg"
-                    >
-                        {loading ? "Signing Up..." : "Sign Up"}
-                    </button>
-                </form>
-
-                <div className="flex gap-2 mt-5 justify-center">
-                    <p>Have an account?</p>
-                    <Link to="/sign-in" className="text-blue-600">
-                        Sign in
-                    </Link>
-                </div>
-
-                {error && (
-                    <p className="text-red-600 mt-5 text-center bg-red-100 p-3 rounded-lg">
-                        {error}
+            {/* RIGHT SIDE – FORM */}
+            <div className="flex items-center justify-center p-6">
+                <motion.div
+                    initial={{ opacity: 0, x: 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="w-full max-w-md"
+                >
+                    <h2 className="text-2xl font-semibold mb-2">Sign In</h2>
+                    <p className="text-gray-500 mb-6">
+                        Enter your credentials to continue
                     </p>
-                )}
-            </motion.div>
+
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <div>
+                            <label className="text-sm text-gray-600">Email</label>
+                            <input
+                                type="email"
+                                id="email"
+                                required
+                                onChange={handleChange}
+                                className="w-full border p-3 rounded-md mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm text-gray-600">Password</label>
+                            <input
+                                type="password"
+                                id="password"
+                                required
+                                onChange={handleChange}
+                                className="w-full border p-3 rounded-md mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <button
+                            disabled={loading}
+                            className="mt-4 bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-60"
+                        >
+                            {loading ? "Signing In..." : "Sign In"}
+                        </button>
+                    </form>
+
+                    {error && (
+                        <p className="mt-4 text-red-600 bg-red-100 p-3 rounded-md text-sm">
+                            {error}
+                        </p>
+                    )}
+
+                    <p className="mt-6 text-sm text-gray-600">
+                        Don’t have an account?{" "}
+                        <Link to="/sign-up" className="text-blue-600 font-medium">
+                            Create one
+                        </Link>
+                    </p>
+                </motion.div>
+            </div>
         </div>
     );
 }

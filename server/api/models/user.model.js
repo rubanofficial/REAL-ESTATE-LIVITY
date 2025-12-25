@@ -1,5 +1,5 @@
 // 1. Import mongoose
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 // 2. Define the schema
 const userSchema = new mongoose.Schema(
@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
+            trim: true,
         },
 
         // Email
@@ -16,6 +17,8 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
+            lowercase: true,
+            trim: true,
         },
 
         // Password (hashed)
@@ -24,18 +27,24 @@ const userSchema = new mongoose.Schema(
             required: true,
         },
 
+        // 📞 Phone number (NEW)
+        phone: {
+            type: String,
+            required: true,
+        },
+
         // Profile picture
         avatar: {
             type: String,
             default:
-                'https://static.vecteezy.com/system/resources/previews/005/544/718/original/profile-icon-design-free-vector.jpg',
+                "https://static.vecteezy.com/system/resources/previews/005/544/718/original/profile-icon-design-free-vector.jpg",
         },
 
-        // ❤️ WISHLIST / FAVORITES
+        // ❤️ Wishlist / Favorites
         favorites: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'Listing', // reference to Listing collection
+                ref: "Listing",
             },
         ],
     },
@@ -45,7 +54,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // 3. Create the model
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 // 4. Export the model
 export default User;

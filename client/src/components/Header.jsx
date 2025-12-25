@@ -93,11 +93,13 @@ export default function Header() {
                                 </li>
                             </>
                         ) : (
-                            <Link to="/sign-up">
-                                <li className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-                                    Sign Up
-                                </li>
-                            </Link>
+                            <>
+                                <Link to="/sign-up">
+                                    <li className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                                        Sign Up
+                                    </li>
+                                </Link>
+                            </>
                         )}
                     </ul>
                 </nav>
@@ -170,11 +172,15 @@ export default function Header() {
                                     Logout
                                 </li>
                             ) : (
-                                <Link to="/sign-up" onClick={() => setIsMenuOpen(false)}>
-                                    <li className="bg-blue-600 text-white px-4 py-2 rounded-md">
-                                        Sign Up
-                                    </li>
-                                </Link>
+                                <>
+                                    <Link to="/sign-in" onClick={() => setIsMenuOpen(false)}>
+                                        <li className="text-slate-700 hover:underline">Sign In</li>
+                                    </Link>
+
+                                    <Link to="/sign-up" onClick={() => setIsMenuOpen(false)}>
+                                        <li className="bg-blue-600 text-white px-4 py-2 rounded-md">Sign Up</li>
+                                    </Link>
+                                </>
                             )}
                         </ul>
                     </motion.div>

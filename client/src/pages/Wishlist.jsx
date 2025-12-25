@@ -4,8 +4,12 @@ import PropertyCard from "../components/PropertyCard";
 export default function Wishlist() {
     const [favorites, setFavorites] = useState([]);
 
+    const API_BASE = import.meta.env.DEV
+        ? "http://localhost:10000"
+        : import.meta.env.VITE_BACKEND_URL;
+
     useEffect(() => {
-        fetch("http://localhost:10000/api/users/favorites", {
+        fetch(`${API_BASE}/api/users/favorites`, {
             credentials: "include",
         })
             .then(res => res.json())

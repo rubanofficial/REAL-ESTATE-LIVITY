@@ -5,31 +5,60 @@ import jwt from "jsonwebtoken";
 // ---------------- SIGNUP ----------------
 export const signup = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, phone } = req.body;
 
-        if (!username || !email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
+        // Basic validation
+        if (!username || !email || !password || !phone) {
+            return res.status(400).json({
+                message: "All fields are required",
+            });
         }
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({ message: "Email already exists" });
+        // Check email uniqueness
+        const emailExists = await User.findOne({ email });
+        if (emailExists) {
+            return res.status(409).json({
+                message: "Email already exists",
+            });
         }
 
+        // Check username uniqueness
+        const usernameExists = await User.findOne({ username });
+        if (usernameExists) {
+            return res.status(409).json({
+                message: "Username already exists",
+            });
+        }
+
+        // Hash password
         const hashedPassword = bcrypt.hashSync(password, 10);
 
+        // Create user (✅ phone added)
         const newUser = new User({
             username,
             email,
             password: hashedPassword,
+            phone,
         });
 
         await newUser.save();
 
-        res.status(201).json({ message: "User created successfully" });
+        return res.status(201).json({
+            message: "User created successfully",
+        });
     } catch (error) {
         console.error("Signup error:", error);
-        res.status(500).json({ message: "Server error" });
+
+        // MongoDB duplicate key safety net
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: "User already exists",
+            });
+        }
+
+        return res.status(500).json({
+            message: "Server error",
+        });
     }
 };
 
@@ -38,14 +67,24 @@ export const signin = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "Email and password are required",
+            });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({
+                message: "User not found",
+            });
         }
 
         const isMatch = bcrypt.compareSync(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({
+                message: "Invalid credentials",
+            });
         }
 
         const token = jwt.sign(
@@ -54,18 +93,23 @@ export const signin = async (req, res) => {
             { expiresIn: "1d" }
         );
 
+        // Remove password before sending response
         const { password: pass, ...rest } = user._doc;
+
+        const isProduction = process.env.NODE_ENV === "production";
 
         res.cookie("access_token", token, {
             httpOnly: true,
-            secure: true,       // ✅ REQUIRED for Render (HTTPS)
-            sameSite: "none",   // ✅ REQUIRED for cross-domain
+            secure: isProduction,                 // true only in production (HTTPS)
+            sameSite: isProduction ? "none" : "lax",
             path: "/",
         });
 
-        res.status(200).json(rest);
+        return res.status(200).json(rest);
     } catch (error) {
         console.error("Signin error:", error);
-        res.status(500).json({ message: "Server error" });
+        return res.status(500).json({
+            message: "Server error",
+        });
     }
 };
