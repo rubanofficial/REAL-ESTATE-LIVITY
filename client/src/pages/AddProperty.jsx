@@ -1,5 +1,42 @@
+// AddProperty page with form, image upload, and map-based location picker.
 import React, { useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, useMapEvent } from "react-leaflet";
+import L from "leaflet";
 import { useNavigate } from "react-router-dom";
+
+const DEFAULT_PICKER_CENTER = [20.5937, 78.9629];
+
+/**
+ * Create a custom house icon for the map marker.
+ * @returns {L.DivIcon}
+ */
+function createHouseIcon() {
+    const svg = `
+        <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#2563EB" d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z" />
+            <path fill="#1E40AF" d="M9 20v-6h6v6" />
+        </svg>
+    `;
+
+    return L.divIcon({
+        className: "livity-house-icon",
+        html: svg,
+        iconSize: [30, 30],
+        iconAnchor: [15, 28],
+    });
+}
+
+/**
+ * Map click handler for selecting a location.
+ * @param {{ onPick: (lat: number, lng: number) => void }} props
+ */
+function LocationPicker({ onPick }) {
+    useMapEvent("click", (event) => {
+        onPick(event.latlng.lat, event.latlng.lng);
+    });
+
+    return null;
+}
 
 export default function AddProperty() {
     const navigate = useNavigate();
@@ -14,6 +51,7 @@ export default function AddProperty() {
         bathrooms: 1,
         areaSqFt: "",
         address: { street: "", city: "", state: "", postalCode: "" },
+        location: { lat: null, lng: null },
     });
 
     const [imageFile, setImageFile] = useState(null);
@@ -25,6 +63,10 @@ export default function AddProperty() {
 
     const fileInputRef = useRef(null);
 
+    /**
+     * Update form state from inputs.
+     * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>} e
+     */
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name.startsWith("address.")) {
@@ -35,6 +77,10 @@ export default function AddProperty() {
         }
     };
 
+    /**
+     * Handle image selection and preview.
+     * @param {React.ChangeEvent<HTMLInputElement>} e
+     */
     const handleFileSelect = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -71,6 +117,10 @@ export default function AddProperty() {
         return null;
     };
 
+    /**
+     * Submit the listing to the API.
+     * @param {React.FormEvent<HTMLFormElement>} e
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -92,6 +142,9 @@ export default function AddProperty() {
             fd.append("bathrooms", form.bathrooms);
             fd.append("areaSqFt", form.areaSqFt);
             fd.append("address", JSON.stringify(form.address));
+            if (typeof form.location.lat === "number" && typeof form.location.lng === "number") {
+                fd.append("location", JSON.stringify(form.location));
+            }
             fd.append("image", imageFile);
 
             const API_BASE =
@@ -251,6 +304,58 @@ export default function AddProperty() {
                             className="p-2 border rounded"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-3">
+                    <h3 className="font-medium">Pick Location on Map</h3>
+                    <div className="w-full h-64 sm:h-72 border rounded overflow-hidden">
+                        <MapContainer
+                            center={DEFAULT_PICKER_CENTER}
+                            zoom={4}
+                            className="w-full h-full"
+                            scrollWheelZoom
+                        >
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <LocationPicker
+                                onPick={(lat, lng) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        location: { lat, lng },
+                                    }))
+                                }
+                            />
+                            {typeof form.location.lat === "number" &&
+                                typeof form.location.lng === "number" && (
+                                    <Marker
+                                        position={[form.location.lat, form.location.lng]}
+                                        draggable
+                                        icon={createHouseIcon()}
+                                        eventHandlers={{
+                                            dragend: (event) => {
+                                                const marker = event.target;
+                                                const pos = marker.getLatLng();
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    location: {
+                                                        lat: pos.lat,
+                                                        lng: pos.lng,
+                                                    },
+                                                }));
+                                            },
+                                        }}
+                                    />
+                                )}
+                        </MapContainer>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                        {typeof form.location.lat === "number" &&
+                            typeof form.location.lng === "number"
+                            ? `Selected: ${form.location.lat.toFixed(5)}, ${form.location.lng.toFixed(5)}`
+                            : "Click the map to set a location."}
+                    </p>
                 </div>
 
                 <div>

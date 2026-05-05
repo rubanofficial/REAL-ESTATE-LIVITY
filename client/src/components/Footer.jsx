@@ -12,13 +12,13 @@ export default function Footer() {
 
                 {/* --- Column 1: About --- */}
                 <div>
-                    <h3 className="text-lg font-semibold text-white mb-4">Ruban Estate</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">LIVITY</h3>
                     <p className="text-sm">
                         Find your next perfect place with ease. We have a wide range of
                         properties for you to choose from.
                     </p>
                     <p className="text-xs mt-4">
-                        &copy; {new Date().getFullYear()} Ruban Estate. All rights reserved.
+                        &copy; {new Date().getFullYear()} LIVITY. All rights reserved.
                     </p>
                 </div>
 

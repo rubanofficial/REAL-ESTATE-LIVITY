@@ -1,4 +1,4 @@
-
+// App router and global layout (header/footer).
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -22,6 +22,7 @@ export default function App() {
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/listing/:id" element={<PropertyPage />} />
+        <Route path="/property/:id" element={<PropertyPage />} />
         <Route path="/add-property" element={<AddProperty />} />
         <Route path="/search" element={<Properties />} />
         <Route path="/wishlist" element={<Wishlist />} />

@@ -2,19 +2,24 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// ---------------- SIGNUP ----------------
+/**
+ * ======================
+ * SIGNUP CONTROLLER
+ * POST /api/auth/signup
+ * ======================
+ */
 export const signup = async (req, res) => {
     try {
         const { username, email, password, phone } = req.body;
 
-        // Basic validation
+        // 🔒 Basic validation
         if (!username || !email || !password || !phone) {
             return res.status(400).json({
                 message: "All fields are required",
             });
         }
 
-        // Check email uniqueness
+        // 📧 Email uniqueness
         const emailExists = await User.findOne({ email });
         if (emailExists) {
             return res.status(409).json({
@@ -22,7 +27,7 @@ export const signup = async (req, res) => {
             });
         }
 
-        // Check username uniqueness
+        // 👤 Username uniqueness
         const usernameExists = await User.findOne({ username });
         if (usernameExists) {
             return res.status(409).json({
@@ -30,10 +35,10 @@ export const signup = async (req, res) => {
             });
         }
 
-        // Hash password
+        // 🔐 Hash password
         const hashedPassword = bcrypt.hashSync(password, 10);
 
-        // Create user (✅ phone added)
+        // 👤 Create new user
         const newUser = new User({
             username,
             email,
@@ -49,7 +54,7 @@ export const signup = async (req, res) => {
     } catch (error) {
         console.error("Signup error:", error);
 
-        // MongoDB duplicate key safety net
+        // Mongo duplicate safety
         if (error.code === 11000) {
             return res.status(409).json({
                 message: "User already exists",
@@ -62,17 +67,24 @@ export const signup = async (req, res) => {
     }
 };
 
-// ---------------- SIGNIN ----------------
+/**
+ * ======================
+ * SIGNIN CONTROLLER
+ * POST /api/auth/signin
+ * ======================
+ */
 export const signin = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // 🔒 Validation
         if (!email || !password) {
             return res.status(400).json({
                 message: "Email and password are required",
             });
         }
 
+        // 👤 Find user
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({
@@ -80,6 +92,7 @@ export const signin = async (req, res) => {
             });
         }
 
+        // 🔑 Compare password
         const isMatch = bcrypt.compareSync(password, user.password);
         if (!isMatch) {
             return res.status(401).json({
@@ -87,21 +100,25 @@ export const signin = async (req, res) => {
             });
         }
 
+        // 🔐 Create JWT
         const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
-        // Remove password before sending response
+        // ❌ Remove password from response
         const { password: pass, ...rest } = user._doc;
 
-        const isProduction = process.env.NODE_ENV === "production";
-
+        /**
+         * 🔥 IMPORTANT: LOCALHOST COOKIE CONFIG
+         * secure MUST be false
+         * sameSite MUST be "lax"
+         */
         res.cookie("access_token", token, {
             httpOnly: true,
-            secure: isProduction,                 // true only in production (HTTPS)
-            sameSite: isProduction ? "none" : "lax",
+            secure: false,   // ✅ REQUIRED for localhost
+            sameSite: "lax", // ✅ REQUIRED for localhost
             path: "/",
         });
 
