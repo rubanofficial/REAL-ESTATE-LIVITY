@@ -6,6 +6,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 import authRouter from "./routes/auth.route.js";
 import listingRouter from "./routes/listing.route.js";
@@ -24,6 +25,9 @@ mongoose
     .catch((err) => console.error("❌ MongoDB Error:", err));
 
 const app = express();
+
+// --- SECURITY HEADERS (HELMET) ---
+app.use(helmet());
 
 // --- CORS CONFIGURATION ---
 const allowedOrigins = [
